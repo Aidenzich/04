@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Collection;
 import android.util.Log;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     private String answer;
@@ -20,6 +21,11 @@ public class MainActivity extends AppCompatActivity {
     private EditText input;
     private TextView log;
     private int counter; //不用賦予初值，其值為0
+    private long lastTime = 0;
+    //private String[] three = new String[3] ;  //string的宣告方式要有new
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,19 +52,102 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void exit(View view) {
-
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setMessage("Exit?")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                })
+                .setNegativeButton("Cancel",null)
+                .create();
+        alertDialog.show();
     }
+    @Override
+    protected  void  onDestroy(){
+        super.onDestroy();
+    }
+    @Override
+    public  void finish(){
+        super.finish();
+        Log.v("az","finish");
+    }
+   /*
+    @Override
+    public  void onBackPressed(){
+        super.onBackPressed();
+        Toast.makeText(this, "back one more", Toast.LENGTH_SHORT).show();
+        Log.v("az","onBackPress");
+    }
+   */
+   @Override
+   public  void onBackPressed(){
+       if (System.currentTimeMillis() - lastTime > 3*1000){
+        lastTime = System.currentTimeMillis();
+           Toast.makeText(this, "back one more", Toast.LENGTH_SHORT).show();
+       }else{
+           super.onBackPressed();
+       }
+   }
 
+    int temp;
     public void setting(View view) {
+      // three[0] ="1"; three[1] ="2" ; three[2] ="3"; //不可為空值
+        String[] tree = {"3","4","5","6"};
+       AlertDialog alertDialog = new AlertDialog.Builder(this)
+               .setTitle("Select Game Mode")
+               .setItems(tree, new DialogInterface.OnClickListener(){
+                   @Override
+                   public  void  onClick(DialogInterface dialog, int which){
+                   Log.v("az","which = "+ which);
+                   }
+               })
+
+               .setSingleChoiceItems(tree, dig-3, new DialogInterface.OnClickListener() {
+                   @Override
+                   public void onClick(DialogInterface dialog, int which) {
+                       Log.v("az","which1="+which);
+                       temp = which;
+
+                   }
+               })
+
+               .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                   @Override
+                   public void onClick(DialogInterface dialog, int which) {
+                       Log.v("az","which2"+which);
+                       dig = temp + 3;
+                       newGame(null);
+
+                   }
+               })
+
+               .create();
+       alertDialog.show();
     }
 
     public void newGame(View view) {
+
+        counter = 0;
+        input.setText("");
+        log.setText("");
+        answer = createAnswer(dig);
         Log.v("az","new game");
+        Log.v("az", answer);
     }
 
     public void guess(View view) {
         counter++;
         String strInput = input.getText().toString();
+        if (!isRightNumber(strInput)){
+            AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setMessage("請輸入正確數字")
+                    .create();
+            alertDialog.show();
+            return;
+        }
         String result = checkAB(strInput);
         log.append(strInput + " => " + result + "\n");
         if(result.equals(dig+"A0B")){
@@ -70,6 +159,11 @@ public class MainActivity extends AppCompatActivity {
         }
         input.setText("");
     }
+
+    private boolean isRightNumber(String g){
+        return g.matches("^[0-9]{"+dig+"}$");
+    }
+
     private void showDialog(boolean isWinner){
         AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle( isWinner?"WINNER":"Loser" )
